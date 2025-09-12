@@ -1,4 +1,4 @@
 
 directories:
-  ptirfiles: "./ptirfiles/"
-  output: "./output/"
+  ptirfiles: "./ptirfiles"
+  output: "./output"
