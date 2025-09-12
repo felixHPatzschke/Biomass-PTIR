@@ -2,6 +2,9 @@
 # raw data
 *.ptir
 
+# outputs
+output/*
+
 # system files
 *.DS_Store
 Thumbs.db
