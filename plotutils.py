@@ -50,9 +50,12 @@ MULTIPLE_PI_4 = Multiple(denominator=4, number=np.pi, latex='\pi')
 MULTIPLE_PI_6 = Multiple(denominator=6, number=np.pi, latex='\pi')
 MULTIPLE_PI_12 = Multiple(denominator=12, number=np.pi, latex='\pi')
 
+VORONOI_HEATMAP_DEFAULT_KWARGS = dict(
+    alpha=1.0,
+    linewidth=0.0
+)
 
-### plot scalar data defined on an irregular point cloud to a voronoi tesselation heatmap
-def voronoi_heatmap(ax, positions, labels, abstract_cmap:callable, alpha:float=1.0):
+def voronoi_tesselation(positions):
     xmin,ymin = np.min(positions,axis=1)
     xmax,ymax = np.max(positions,axis=1)
 
@@ -70,35 +73,33 @@ def voronoi_heatmap(ax, positions, labels, abstract_cmap:callable, alpha:float=1
     ])
     tess = sp.spatial.Voronoi( np.concatenate( [positions.T, dummy_points], axis=0 ) )
 
+    polygons = []
     for j in range(len(tess.points)):
         point_region = tess.point_region[j]
         if point_region != -1:
             region = tess.regions[point_region]
             if not -1 in region:
-                polygon = [tess.vertices[i] for i in region]
-                #plt.fill(
-                #    *zip(*polygon), 
-                #    ring_access(SEGMENT_COLORS, labels[j]),
-                #    alpha=alpha
-                #)
-                ax.add_patch(
-                    mpl.patches.Polygon(
-                        polygon, 
-                        facecolor=abstract_cmap(labels[j]),
-                        alpha=alpha,
-                        linewidth=0,
-                        #hatch='/'
-                    )
-                )
-        #    else:
-        #        print(f"-1 in point_region {point_region} <- point {j}")
-        #else:
-        #    print(f"point_region of point {j} is -1")
+                polygons.append( [ np.clip(tess.vertices[i],[xmin,ymin],[xmax,ymax]) for i in region] )
     
-    #sp.spatial.voronoi_plot_2d(tess,ax,show_vertices=False,show_points=False)
+    return polygons, (xmin,xmax,ymin,ymax), (xspan,yspan)
+                
 
-    ax.set_xlim(xmin - 0.1 * xspan, xmax + 0.1 * xspan)
-    ax.set_ylim(ymin - 0.1 * yspan, ymax + 0.1 * yspan)
+
+### plot scalar data defined on an irregular point cloud to a voronoi tesselation heatmap
+def voronoi_heatmap(ax, positions, labels, abstract_cmap:callable, set_limits:bool=False, **kwargs):
+    ### load defaults and overwrite with passed kwargs
+    kwargs = {**VORONOI_HEATMAP_DEFAULT_KWARGS, **kwargs}
+
+    polygons, limits, spans = voronoi_tesselation(positions)
+
+    for j,polygon in enumerate(polygons):
+        ax.add_patch( mpl.patches.Polygon( polygon, facecolor=abstract_cmap(labels[j]), **kwargs ) )
+
+    if set_limits:
+        xmin,ymin,xmax,ymax = limits
+        xspan,yspan = spans
+        ax.set_xlim(xmin - 0.1 * xspan, xmax + 0.1 * xspan)
+        ax.set_ylim(ymin - 0.1 * yspan, ymax + 0.1 * yspan)
 
 
 
