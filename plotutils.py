@@ -96,7 +96,7 @@ def voronoi_heatmap(ax, positions, labels, abstract_cmap:callable, set_limits:bo
         ax.add_patch( mpl.patches.Polygon( polygon, facecolor=abstract_cmap(labels[j]), **kwargs ) )
 
     if set_limits:
-        xmin,ymin,xmax,ymax = limits
+        xmin,xmax,ymin,ymax = limits
         xspan,yspan = spans
         ax.set_xlim(xmin - 0.1 * xspan, xmax + 0.1 * xspan)
         ax.set_ylim(ymin - 0.1 * yspan, ymax + 0.1 * yspan)
